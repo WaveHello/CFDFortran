@@ -23,3 +23,25 @@ fpm run
 
 - Modern Fortran compiler (gfortran, ifort, etc.)
 - FPM (Fortran Package Manager)
+
+## Installation
+
+### Installing via Conda
+
+We recommend using conda to install both the Fortran compiler and FPM:
+
+```bash
+# Install gfortran compiler
+conda install -c conda-forge gfortran
+
+# Install FPM (Fortran Package Manager)
+conda install -c conda-forge fpm
+```
+
+Alternatively, you can create a new environment with all dependencies:
+
+```bash
+# Create new environment with Fortran tools
+conda create -n fortran-cfd -c conda-forge gfortran fpm
+conda activate fortran-cfd
+```

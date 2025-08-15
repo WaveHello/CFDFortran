@@ -14,8 +14,6 @@ program step_3
     call linearconv(71_i32)
     call linearconv(85_i32)
 
-
-
     call title('Non-Linear Convection: Comparison of Grid Resolutions')
     call xlabel('x')
     call ylabel('Velocity u(x)')
