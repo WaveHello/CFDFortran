@@ -33,7 +33,7 @@ fpm build
 fpm run
 ```
 
-Short buts were added to run specific steps. For example to run step 1 use:
+Shortcuts were added to run specific steps. For example to run step 1 use:
 ```bash
 fpm @step_1
 ```
