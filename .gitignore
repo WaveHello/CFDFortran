@@ -1,0 +1,42 @@
+# Fortran compiled files
+*.o
+*.obj
+*.mod
+*.smod
+*.a
+*.so
+*.dll
+*.exe
+
+# FPM (Fortran Package Manager) build directory
+build/
+
+# Generated plot files
+fortplot_*.pdf
+*.png
+*.pdf
+*.jpg
+*.jpeg
+*.gif
+*.eps
+*.ps
+
+# Editor and IDE files
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Log files
+*.log
+
+# FPM response file (optional - remove if you want to track it)
+fpm.rsp
