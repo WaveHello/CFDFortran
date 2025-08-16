@@ -39,4 +39,4 @@ Thumbs.db
 *.log
 
 # FPM response file (optional - remove if you want to track it)
-fpm.rsp
+# fpm.rsp

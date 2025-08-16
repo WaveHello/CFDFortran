@@ -1,0 +1,23 @@
+@deep-clean
+options clean --all
+
+@dust
+options clean
+
+@step_1
+options run --target "step_0"
+
+@step_1
+options run --target "step_1"
+
+@step_2
+options run --target "step_2"
+
+@step_3
+options run --target "step_3"
+
+@build
+options build
+
+@static-build
+options build --flag "-static"
