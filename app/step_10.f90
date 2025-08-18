@@ -1,63 +1,81 @@
 program step_10
-    use stdlib_math, only: linspace
-    use stdlib_kinds, only: dp, i32 => int32
-    use string_conv, only: num2str
-    use fortplot
+   use stdlib_kinds, only: dp, i32 => int32
+   use stdlib_math, only: linspace, meshgrid
+   use string_conv, only: num2str
+   use fortplot
 
-    implicit none
-    
-    ! We're going to write some more functions and subroutines in this modules.
-    ! Functions in fortran return a single value, whereas subroutines can return multiple values via intent(out) arguments.
-    ! Inputs and outputs can be specified with intent(in), intent(out) and intent(inout).
-    ! Functions are referenced by their name, subroutines are called with the 'call' keyword.
-    ! Both are held in the contains section of the program or module.
-    ! Fortran is strongly typed, so we need to declare the types of arguments and return values.
-    ! The function or subroutine will not work for other types unless we use generics or interfaces, which we won't cover here.
+   implicit none
+   ! Init variables for 2D burgers equation
+   integer(i32), parameter :: nx = 41, ny = 41, nt = 120
+   real(dp), parameter :: x_start = 0.0_dp, x_end = 2.0_dp, y_start = 0.0_dp, y_end = 2.0_dp
+   real(dp), parameter :: dx = (x_end - x_start) / real(nx - 1, dp)
+   real(dp), parameter :: dy = (y_end - y_start) / real(ny - 1, dp)
+   real(dp), parameter :: nu = 0.01_dp
+   real(dp), parameter :: sigma = 0.0009_dp, dt = sigma * dx * dy / nu
+   real(dp), parameter :: c = 1.0_dp
+   real(dp) :: u(ny, nx) = 1.0_dp, un(ny, nx) = 1.0_dp, u_init(ny, nx) = 1.0_dp
+   real(dp) :: v(ny, nx) = 1.0_dp, vn(ny, nx) = 1.0_dp, v_init(ny, nx) = 1.0_dp
+   real(dp) :: x(nx) = 0.0_dp, y(ny) = 0.0_dp
+   ! Loop variables
+   integer(i32) :: i, j, n
 
-    ! We also need to initialize variables before using them.
-    integer(i32) :: n
+   ! Create the linear spaces for meshgrid
+   x = linspace(x_start, x_end, nx)
+   y = linspace(y_start, y_end, ny)
 
-    print *, "Simple function example:", simple_add(3.0_dp, 4.0_dp)
+   ! Assign the initial conditions
+   u(int(0.5_dp / dy) : int(1 / dy + 1), int(0.5_dp / dx) : int(1 / dx + 1)) = 2.0_dp
+   v(int(0.5_dp / dy) : int(1 / dy + 1), int(0.5_dp / dx) : int(1 / dx + 1)) = 2.0_dp
 
-    print *, "Fibonacci sequence:", fibonacci(8_i32)
+   ! Store initial conditions for plotting later
+   u_init = u
+   v_init = v
 
-    ! Once defined, functions can be used like any other expression
-    do n = 0, 9
-        print *, "Fibonacci(" // num2str(n) // ") = ", fibonacci(n)
-    end do
 
-    ! We'll use the capacity to define functions to help build code that is easier to resuse, easier to maintain, and easier to share!
-    
-    contains
+   ! Solve the 2D burgers equations using array operations
+   do n = 1, nt
+      un = u
+      vn = v
+      u(2:ny-1, 2:nx-1) = un(2:ny-1, 2:nx-1) - &
+         un(2:ny-1, 2:nx-1) * dt/dx * (un(2:ny-1, 2:nx-1) - un(2:ny-1, 1:nx-2)) - &
+         vn(2:ny-1, 2:nx-1) * dt/dy * (un(2:ny-1, 2:nx-1) - un(1:ny-2, 2:nx-1)) + &
+         nu * dt/dx**2 * (un(2:ny-1, 3:nx) - 2.0_dp * un(2:ny-1, 2:nx-1) + un(2:ny-1, 1:nx-2)) + &
+         nu * dt/dy**2 * (un(3:ny, 2:nx-1) - 2.0_dp * un(2:ny-1, 2:nx-1) + un(1:ny-2, 2:nx-1))
+      ! Similarly for v component
+      v(2:ny-1, 2:nx-1) = vn(2:ny-1, 2:nx-1) - &
+         un(2:ny-1, 2:nx-1) * dt/dx * (vn(2:ny-1, 2:nx-1) - vn(2:ny-1, 1:nx-2)) - &
+         vn(2:ny-1, 2:nx-1) * dt/dy * (vn(2:ny-1, 2:nx-1) - vn(1:ny-2, 2:nx-1)) + &
+         nu * dt/dx**2 * (vn(2:ny-1, 3:nx) - 2.0_dp * vn(2:ny-1, 2:nx-1) + vn(2:ny-1, 1:nx-2)) + &
+         nu * dt/dy**2 * (vn(3:ny, 2:nx-1) - 2.0_dp * vn(2:ny-1, 2:nx-1) + vn(1:ny-2, 2:nx-1))
+      ! Set the boundary conditions (u=v=1 at boundaries)
+      u(1, :)  = 1.0_dp
+      u(ny, :) = 1.0_dp
+      u(:, 1)  = 1.0_dp
+      u(:, nx) = 1.0_dp
 
-    function simple_add(a, b) result(retval)
-        real(dp), intent(in) :: a, b
-        real(dp) :: retval
-        
-        ! The name of the variable in the result() clause is the return value of the function
-        retval = a + b
-    end function simple_add
+      v(1, :)  = 1.0_dp
+      v(ny, :) = 1.0_dp
+      v(:, 1)  = 1.0_dp
+      v(:, nx) = 1.0_dp
+   end do
+    ! Plot the final results
+    call figure()
+    ! Plot the initial and final conditions for u
+    call contour_filled(x, y, u_init, label = "Initial Condition u", colormap='viridis')
+    call contour_filled(x, y, u, label = "Final Condition u @ t= " // num2str(nt * dt) , colormap='viridis')
+    call title('2D Viscous Burgers Equation - u component')
+    call xlabel('X-axis')
+    call ylabel('Y-axis')
+    call show()
 
-    function fibonacci(n) result(fib_n)
-        integer(i32), intent(in) :: n
-        integer(i32) :: fib_n
-
-        ! Local variables
-        ! Don't set the value of variables in the define section
-        ! Everytime the function is called these variables carry over there value from the last call
-        integer(i32) :: i, temp, a, b
-
-        a = 0
-        b = 1
-        do i = 1, n
-            temp = a + b
-            a = b
-            b = temp
-        end do
-
-        fib_n = a
-
-    end function fibonacci
-
+    call figure()
+    ! Plot the initial and final conditions for v
+    call contour_filled(x, y, v_init, label = "Initial Condition v", colormap='viridis')
+    call contour_filled(x, y, v, label = "Final Condition v @ t= " // num2str(nt * dt) , colormap='viridis')
+    call title('2D Viscous Burgers Equation - v component')
+    call xlabel('X-axis')
+    call ylabel('Y-axis')
+    call legend()
+    call show()
 
 end program step_10
